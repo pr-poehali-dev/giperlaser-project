@@ -25,7 +25,7 @@ const MEDIUM_GRAY = "E8E8E8";
 const slides = [
   { id: 1, title: "GiperLaser Extra", subtitle: "Разработка инновационных машин термической резки металлов", type: "cover" },
   {
-    id: 2, title: "О компании", type: "points-img", img: IMGS.realMachine, imgCaption: "Производство, Красноярск",
+    id: 2, title: "О компании", type: "points-cards",
     points: ["ООО «Гиперплазма», Красноярск — ОКВЭД 28.41.1", "Резидент Сколково и МТК с 2025 года", "14 специалистов, 150+ реализованных проектов", "Патенты, ПО, Реестр российской промышленной продукции", "Производство: Красноярск и пос. Солонцы"],
   },
   {
@@ -45,11 +45,11 @@ const slides = [
     ],
   },
   {
-    id: 6, title: "Методология НИОКР", type: "cols-imgs",
+    id: 6, title: "Методология НИОКР", type: "cols",
     cols: [
-      { label: "Анализ", items: ["ТРИЗ", "Функциональный анализ", "Морфологический анализ"], img: IMGS.metalParts },
-      { label: "Оптимизация", items: ["Топологическая", "Генеративная", "FEA-моделирование"], img: IMGS.blackParts },
-      { label: "Разработка", items: ["Прототипирование", "Испытания", "Адаптивное управление"], img: IMGS.brassClamp },
+      { label: "Анализ", items: ["ТРИЗ", "Функциональный анализ", "Морфологический анализ"], img: "" },
+      { label: "Оптимизация", items: ["Топологическая", "Генеративная", "FEA-моделирование"], img: "" },
+      { label: "Разработка", items: ["Прототипирование", "Испытания", "Адаптивное управление"], img: "" },
     ],
   },
   {
@@ -58,7 +58,7 @@ const slides = [
     note: "Замещаем: Bystronic · Trumpf · Mazak · Amada · Bodor · Senfeng",
   },
   {
-    id: 8, title: "Целевые клиенты", type: "points-img", img: IMGS.techDiagram, imgCaption: "Схема режущей головы GiperLaser",
+    id: 8, title: "Целевые клиенты", type: "points-cards",
     points: ["Русал, СУЭК, ГМК Норильский никель", "ГК Росатом, Транснефть, Роснефть, Газпром", "Северсталь, Звёздочка", "Заводы металлоконструкций и машиностроения", "Рынки: Россия, Казахстан, Беларусь"],
   },
   {
@@ -106,18 +106,17 @@ async function generatePptx() {
   s1.addText("Импортозамещение  ·  НИОКР  ·  2025–2027", { x: 0.35, y: 3.8, w: 4.5, h: 0.4, fontSize: 10, color: RED, fontFace: "Montserrat", bold: true });
   s1.addText("ООО «Гиперплазма»  ·  Красноярск  ·  Резидент Сколково", { x: 0.35, y: 4.9, w: 4.5, h: 0.3, fontSize: 9, color: "888888", fontFace: "IBM Plex Sans" });
 
-  // --- Slide 2: О компании (points + real photo) ---
+  // --- Slide 2: О компании — карточки на всю ширину ---
   const s2 = pptx.addSlide();
   s2.background = { color: WHITE };
   addDecorLine(s2); addFooter(s2, 2); addHeader(s2, "О компании");
-  s2.addImage({ path: IMGS.realMachine, x: 5.8, y: 1.2, w: 3.8, h: 2.8, rounding: false });
-  s2.addShape(pptx.ShapeType.rect, { x: 5.8, y: 3.9, w: 3.8, h: 0.3, fill: { color: RED } });
-  s2.addText("Производство, Красноярск", { x: 5.85, y: 3.92, w: 3.7, h: 0.26, fontSize: 9, color: WHITE, fontFace: "IBM Plex Sans", italic: true });
   const s2pts = ["ООО «Гиперплазма», Красноярск — ОКВЭД 28.41.1", "Резидент Сколково и МТК с 2025 года", "14 специалистов, 150+ реализованных проектов", "Патенты, ПО, Реестр российской промышленной продукции", "Производство: Красноярск и пос. Солонцы"];
   s2pts.forEach((pt, i) => {
-    const y = 1.2 + i * 0.68;
-    s2.addShape(pptx.ShapeType.rect, { x: 0.42, y: y + 0.12, w: 0.18, h: 0.18, fill: { color: RED } });
-    s2.addText(pt, { x: 0.72, y, w: 4.9, h: 0.55, fontSize: 13.5, color: DARK, fontFace: "IBM Plex Sans" });
+    const y = 1.2 + i * 0.72;
+    const isEven = i % 2 === 0;
+    s2.addShape(pptx.ShapeType.rect, { x: 0.42, y, w: 9.2, h: 0.6, fill: { color: isEven ? LIGHT_GRAY : WHITE } });
+    s2.addShape(pptx.ShapeType.rect, { x: 0.42, y, w: 0.08, h: 0.6, fill: { color: RED } });
+    s2.addText(pt, { x: 0.65, y: y + 0.05, w: 8.85, h: 0.5, fontSize: 14, color: DARK, fontFace: "IBM Plex Sans" });
   });
 
   // --- Slide 3: Проблема и цель ---
@@ -161,22 +160,25 @@ async function generatePptx() {
     s5.addText(img.label, { x: x + 0.05, y: 4.13, w: 2.9, h: 0.32, fontSize: 11, color: WHITE, fontFace: "Montserrat", bold: true, align: "center" });
   });
 
-  // --- Slide 6: НИОКР — колонки с картинками ---
+  // --- Slide 6: НИОКР — три колонки без картинок ---
   const s6 = pptx.addSlide();
   s6.background = { color: WHITE };
   addDecorLine(s6); addFooter(s6, 6); addHeader(s6, "Методология НИОКР");
   const cols6 = [
-    { label: "Анализ", items: ["ТРИЗ", "Функциональный анализ", "Морфологический анализ"], img: IMGS.metalParts },
-    { label: "Оптимизация", items: ["Топологическая", "Генеративная", "FEA-моделирование"], img: IMGS.blackParts },
-    { label: "Разработка", items: ["Прототипирование", "Испытания", "Адаптивное управление"], img: IMGS.brassClamp },
+    { label: "Анализ", items: ["ТРИЗ", "Функциональный анализ", "Морфологический анализ"] },
+    { label: "Оптимизация", items: ["Топологическая оптимизация", "Генеративная оптимизация", "FEA-моделирование"] },
+    { label: "Разработка", items: ["Прототипирование", "Испытания", "Адаптивное управление"] },
   ];
   cols6.forEach((col, ci) => {
     const x = 0.35 + ci * 3.2;
-    s6.addShape(pptx.ShapeType.rect, { x, y: 1.2, w: 3.0, h: 0.5, fill: { color: RED } });
-    s6.addText(col.label, { x: x + 0.1, y: 1.25, w: 2.8, h: 0.4, fontSize: 13, bold: true, color: WHITE, fontFace: "Montserrat" });
-    s6.addImage({ path: col.img, x, y: 1.7, w: 3.0, h: 1.8 });
+    s6.addShape(pptx.ShapeType.rect, { x, y: 1.2, w: 3.0, h: 3.85, fill: { color: LIGHT_GRAY } });
+    s6.addShape(pptx.ShapeType.rect, { x, y: 1.2, w: 3.0, h: 0.62, fill: { color: RED } });
+    s6.addText(col.label, { x: x + 0.15, y: 1.27, w: 2.7, h: 0.48, fontSize: 16, bold: true, color: WHITE, fontFace: "Montserrat" });
     col.items.forEach((item, ii) => {
-      s6.addText(`• ${item}`, { x: x + 0.1, y: 3.55 + ii * 0.45, w: 2.8, h: 0.4, fontSize: 12, color: DARK, fontFace: "IBM Plex Sans" });
+      const iy = 2.05 + ii * 0.9;
+      s6.addShape(pptx.ShapeType.rect, { x: x + 0.15, y: iy, w: 2.7, h: 0.7, fill: { color: WHITE } });
+      s6.addShape(pptx.ShapeType.rect, { x: x + 0.15, y: iy, w: 0.07, h: 0.7, fill: { color: RED } });
+      s6.addText(item, { x: x + 0.3, y: iy + 0.1, w: 2.5, h: 0.5, fontSize: 12.5, color: DARK, fontFace: "IBM Plex Sans" });
     });
   });
 
@@ -196,18 +198,17 @@ async function generatePptx() {
   s7.addShape(pptx.ShapeType.rect, { x: 0.42, y: 4.8, w: 9.2, h: 0.32, fill: { color: MEDIUM_GRAY } });
   s7.addText("Замещаем: Bystronic · Trumpf · Mazak · Amada · Bodor · Senfeng", { x: 0.6, y: 4.82, w: 9.0, h: 0.28, fontSize: 10.5, color: "444444", fontFace: "IBM Plex Sans", italic: true });
 
-  // --- Slide 8: Клиенты + схема головы ---
+  // --- Slide 8: Клиенты — строки на всю ширину ---
   const s8 = pptx.addSlide();
   s8.background = { color: WHITE };
   addDecorLine(s8); addFooter(s8, 8); addHeader(s8, "Целевые клиенты");
-  s8.addImage({ path: IMGS.techDiagram, x: 5.9, y: 1.15, w: 3.6, h: 3.3 });
-  s8.addShape(pptx.ShapeType.rect, { x: 5.9, y: 4.4, w: 3.6, h: 0.3, fill: { color: RED } });
-  s8.addText("Схема режущей головы GiperLaser", { x: 5.95, y: 4.42, w: 3.5, h: 0.26, fontSize: 9, color: WHITE, fontFace: "IBM Plex Sans", italic: true });
   const s8pts = ["Русал, СУЭК, ГМК Норильский никель", "ГК Росатом, Транснефть, Роснефть, Газпром", "Северсталь, Звёздочка", "Заводы металлоконструкций и машиностроения", "Рынки: Россия, Казахстан, Беларусь"];
   s8pts.forEach((pt, i) => {
-    const y = 1.2 + i * 0.68;
-    s8.addShape(pptx.ShapeType.rect, { x: 0.42, y: y + 0.12, w: 0.18, h: 0.18, fill: { color: RED } });
-    s8.addText(pt, { x: 0.72, y, w: 5.0, h: 0.55, fontSize: 13.5, color: DARK, fontFace: "IBM Plex Sans" });
+    const y = 1.2 + i * 0.72;
+    const isEven = i % 2 === 0;
+    s8.addShape(pptx.ShapeType.rect, { x: 0.42, y, w: 9.2, h: 0.6, fill: { color: isEven ? LIGHT_GRAY : WHITE } });
+    s8.addShape(pptx.ShapeType.rect, { x: 0.42, y, w: 0.08, h: 0.6, fill: { color: RED } });
+    s8.addText(pt, { x: 0.65, y: y + 0.05, w: 8.85, h: 0.5, fontSize: 14, color: DARK, fontFace: "IBM Plex Sans" });
   });
 
   // --- Slide 9: Финансы ---
@@ -271,7 +272,18 @@ const SlidePreview = ({ slide, index }: { slide: SlideAny; index: number }) => {
           </div>
           <div className="absolute top-[22%] left-2.5 right-1.5 bottom-[10%] overflow-hidden">
 
-            {(slide.type === "points" || slide.type === "points-img") && (
+            {slide.type === "points" && (
+              <div className="space-y-0.5">
+                {s.points?.map((pt: string, i: number) => (
+                  <div key={i} className="flex items-start gap-1">
+                    <div className="w-1 h-1 bg-red-600 mt-1 shrink-0" />
+                    <span className="text-gray-800 text-[7px] font-ibm leading-tight">{pt}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {slide.type === "points-img" && (
               <div className="flex gap-1.5 h-full">
                 <div className="flex-1 space-y-0.5">
                   {s.points?.map((pt: string, i: number) => (
@@ -289,6 +301,17 @@ const SlidePreview = ({ slide, index }: { slide: SlideAny; index: number }) => {
               </div>
             )}
 
+            {slide.type === "points-cards" && (
+              <div className="space-y-0.5">
+                {s.points?.map((pt: string, i: number) => (
+                  <div key={i} className={`flex items-center gap-1 px-1 py-0.5 ${i % 2 === 0 ? "bg-gray-100" : "bg-white"}`}>
+                    <div className="w-0.5 h-4 bg-red-600 shrink-0" />
+                    <span className="text-gray-800 text-[7px] font-ibm leading-tight">{pt}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {slide.type === "three-imgs" && (
               <div className="flex gap-1 h-full">
                 {s.images?.map((img: { src: string; label: string }, i: number) => (
@@ -300,14 +323,17 @@ const SlidePreview = ({ slide, index }: { slide: SlideAny; index: number }) => {
               </div>
             )}
 
-            {slide.type === "cols-imgs" && (
+            {slide.type === "cols" && (
               <div className="flex gap-1 h-full">
-                {s.cols?.map((col: { label: string; items: string[]; img: string }, ci: number) => (
-                  <div key={ci} className="flex-1 flex flex-col overflow-hidden">
+                {s.cols?.map((col: { label: string; items: string[] }, ci: number) => (
+                  <div key={ci} className="flex-1 flex flex-col overflow-hidden bg-gray-50">
                     <div className="bg-red-600 px-1 py-0.5"><span className="text-white text-[7px] font-montserrat font-bold">{col.label}</span></div>
-                    <img src={col.img} alt="" className="w-full h-[45%] object-cover" />
-                    <div className="flex-1 p-0.5 space-y-0.5 bg-gray-50">
-                      {col.items.map((item, ii) => <div key={ii} className="text-gray-700 text-[6px] font-ibm">• {item}</div>)}
+                    <div className="flex-1 p-1 space-y-0.5">
+                      {col.items.map((item, ii) => (
+                        <div key={ii} className="bg-white border-l border-red-500 pl-0.5 py-0.5">
+                          <span className="text-gray-700 text-[6px] font-ibm leading-tight">{item}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
