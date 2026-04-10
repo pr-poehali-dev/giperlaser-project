@@ -74,20 +74,19 @@ const slides = [
 ];
 
 async function toBase64(url: string): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      canvas.getContext("2d")!.drawImage(img, 0, 0);
-      const ext = url.endsWith(".png") ? "png" : "jpeg";
-      resolve(canvas.toDataURL(`image/${ext}`));
-    };
-    img.onerror = () => resolve(""); // пропустить если не загрузилось
-    img.src = url + "?t=" + Date.now(); // cache-bust
-  });
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return "";
+    const blob = await resp.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
 }
 
 async function generatePptx() {
@@ -121,7 +120,7 @@ async function generatePptx() {
   // --- Slide 1: Cover ---
   const s1 = pptx.addSlide();
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.63, fill: { color: DARK } });
-  if (b64_machine3d) s1.addImage({ data: b64_machine3d, x: 3.8, y: 0.3, w: 6.0, h: 5.0 });
+  if (b64_machine3d) s1.addImage({ data: b64_machine3d, x: 3.8, y: 0.3, w: 6.0, h: 5.0, extension: "png" });
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 5.2, h: 5.63, fill: { color: DARK } });
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.18, h: 5.63, fill: { color: RED } });
   s1.addText("GiperLaser", { x: 0.35, y: 1.0, w: 4.5, h: 0.8, fontSize: 38, bold: true, color: WHITE, fontFace: "Montserrat" });
@@ -159,7 +158,7 @@ async function generatePptx() {
   const s4 = pptx.addSlide();
   s4.background = { color: WHITE };
   addDecorLine(s4); addFooter(s4, 4); addHeader(s4, "Продукт: GiperLaser Extra");
-  if (b64_machine3d) s4.addImage({ data: b64_machine3d, x: 5.5, y: 1.1, w: 4.1, h: 3.1 });
+  if (b64_machine3d) s4.addImage({ data: b64_machine3d, x: 5.5, y: 1.1, w: 4.1, h: 3.1, extension: "png" });
   s4.addShape(pptx.ShapeType.rect, { x: 5.5, y: 4.1, w: 4.1, h: 0.28, fill: { color: LIGHT_GRAY } });
   s4.addText("GiperLaser Extra — 3D рендер", { x: 5.55, y: 4.12, w: 4.0, h: 0.24, fontSize: 8.5, color: "888888", fontFace: "IBM Plex Sans", italic: true });
   const s4pts = ["Лазерный станок с ЧПУ для резки металла", "Скорость резки до 80 м/мин, ускорение 0,8G", "Точность позиционирования ±0,05 мм на 4 м", "Резка до 100 мм: нержавейка, алюминий и др.", "Лазер 12–60 кВт, рабочее поле 6×2 м"];
@@ -180,7 +179,7 @@ async function generatePptx() {
   ];
   imgData5.forEach((img, i) => {
     const x = 0.35 + i * 3.2;
-    if (img.data) s5.addImage({ data: img.data, x, y: 1.2, w: 3.0, h: 2.9 });
+    if (img.data) s5.addImage({ data: img.data, x, y: 1.2, w: 3.0, h: 2.9, extension: "jpg" });
     s5.addShape(pptx.ShapeType.rect, { x, y: 4.1, w: 3.0, h: 0.38, fill: { color: RED } });
     s5.addText(img.label, { x: x + 0.05, y: 4.13, w: 2.9, h: 0.32, fontSize: 11, color: WHITE, fontFace: "Montserrat", bold: true, align: "center" });
   });
