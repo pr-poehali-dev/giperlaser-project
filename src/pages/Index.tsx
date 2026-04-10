@@ -73,7 +73,32 @@ const slides = [
   },
 ];
 
+async function toBase64(url: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      const ext = url.endsWith(".png") ? "png" : "jpeg";
+      resolve(canvas.toDataURL(`image/${ext}`));
+    };
+    img.onerror = () => resolve(""); // пропустить если не загрузилось
+    img.src = url + "?t=" + Date.now(); // cache-bust
+  });
+}
+
 async function generatePptx() {
+  // Предзагружаем все изображения в base64
+  const [b64_machine3d, b64_portalBeam, b64_machineFrame, b64_zAxis] = await Promise.all([
+    toBase64(IMGS.machine3d),
+    toBase64(IMGS.portalBeam),
+    toBase64(IMGS.machineFrame),
+    toBase64(IMGS.zAxis),
+  ]);
+
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_16x9";
   pptx.title = "GiperLaser Extra — Инновационные машины лазерной резки";
@@ -96,7 +121,7 @@ async function generatePptx() {
   // --- Slide 1: Cover ---
   const s1 = pptx.addSlide();
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.63, fill: { color: DARK } });
-  s1.addImage({ path: IMGS.machine3d, x: 3.8, y: 0.3, w: 6.0, h: 5.0 });
+  if (b64_machine3d) s1.addImage({ data: b64_machine3d, x: 3.8, y: 0.3, w: 6.0, h: 5.0 });
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 5.2, h: 5.63, fill: { color: DARK } });
   s1.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.18, h: 5.63, fill: { color: RED } });
   s1.addText("GiperLaser", { x: 0.35, y: 1.0, w: 4.5, h: 0.8, fontSize: 38, bold: true, color: WHITE, fontFace: "Montserrat" });
@@ -134,7 +159,7 @@ async function generatePptx() {
   const s4 = pptx.addSlide();
   s4.background = { color: WHITE };
   addDecorLine(s4); addFooter(s4, 4); addHeader(s4, "Продукт: GiperLaser Extra");
-  s4.addImage({ path: IMGS.machine3d, x: 5.5, y: 1.1, w: 4.1, h: 3.1 });
+  if (b64_machine3d) s4.addImage({ data: b64_machine3d, x: 5.5, y: 1.1, w: 4.1, h: 3.1 });
   s4.addShape(pptx.ShapeType.rect, { x: 5.5, y: 4.1, w: 4.1, h: 0.28, fill: { color: LIGHT_GRAY } });
   s4.addText("GiperLaser Extra — 3D рендер", { x: 5.55, y: 4.12, w: 4.0, h: 0.24, fontSize: 8.5, color: "888888", fontFace: "IBM Plex Sans", italic: true });
   const s4pts = ["Лазерный станок с ЧПУ для резки металла", "Скорость резки до 80 м/мин, ускорение 0,8G", "Точность позиционирования ±0,05 мм на 4 м", "Резка до 100 мм: нержавейка, алюминий и др.", "Лазер 12–60 кВт, рабочее поле 6×2 м"];
@@ -149,13 +174,13 @@ async function generatePptx() {
   s5.background = { color: WHITE };
   addDecorLine(s5); addFooter(s5, 5); addHeader(s5, "Конструкция: ключевые узлы");
   const imgData5 = [
-    { path: IMGS.portalBeam, label: "Портальная балка" },
-    { path: IMGS.machineFrame, label: "Сварная рама станка" },
-    { path: IMGS.zAxis, label: "Узел оси Z / суппорт" },
+    { data: b64_portalBeam, label: "Портальная балка" },
+    { data: b64_machineFrame, label: "Сварная рама станка" },
+    { data: b64_zAxis, label: "Узел оси Z / суппорт" },
   ];
   imgData5.forEach((img, i) => {
     const x = 0.35 + i * 3.2;
-    s5.addImage({ path: img.path, x, y: 1.2, w: 3.0, h: 2.9 });
+    if (img.data) s5.addImage({ data: img.data, x, y: 1.2, w: 3.0, h: 2.9 });
     s5.addShape(pptx.ShapeType.rect, { x, y: 4.1, w: 3.0, h: 0.38, fill: { color: RED } });
     s5.addText(img.label, { x: x + 0.05, y: 4.13, w: 2.9, h: 0.32, fontSize: 11, color: WHITE, fontFace: "Montserrat", bold: true, align: "center" });
   });
